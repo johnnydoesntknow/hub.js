@@ -1,0 +1,32 @@
+live_preview: https://demos.creative-tim.com/soft-ui-dashboard-pro-tailwind/pages/dashboards/default.html
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jekyll-gist
+
+include:
+  - assets/css/
+
+# Permalinks
+permalink:        original
+
+# Build settings
+markdown:         kramdown
+highlighter:      rouge
+
+kramdown:
+  auto_ids: true
+
+# Social Tim Links
+  link_tim_twitter: https://twitter.com/CreativeTim
+  link_tim_facebook: https://www.facebook.com/CreativeTim
+  link_tim_instagram: https://www.instagram.com/CreativeTimOfficial
+
+#Redirect
+redirect_from:
+  json: false
+
+path_size_minus: 2

@@ -1,0 +1,57 @@
+---
+---
+<!--
+=========================================================
+* Soft UI Dashboard Pro Tailwind - v1.1.0
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/soft-ui-dashboard-pro-tailwind
+* Copyright 2024 Creative Tim (https://www.creative-tim.com)
+* Coded by Creative Tim
+
+=========================================================
+
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  {% include path/path-assets.html %}
+
+  {% include head.html %}
+  <body class="m-0 font-sans antialiased font-normal text-left leading-default text-base dark:bg-slate-950 bg-gray-50 text-slate-500 dark:text-white">
+    <!-- sidenav -->
+    {% include components/sidenav/sidenav.html %}
+
+    <main class="ease-soft-in-out xl:ml-68 relative h-full max-h-screen rounded-xl transition-all duration-200">
+      <!-- Navbar -->
+      {% include components/navbars/navbar-profile.html %}
+
+      
+      {% include profile-header.html %}
+      
+      <!-- Content -->
+      {{ content }}
+
+      <!-- Footer -->
+      {% include footer.html %}
+    </main>
+    {% include fixed-plugin.html %}
+  </body>
+  
+  <!--   Core JS Files   -->
+  <script src="{{ path-general }}/assets/js/plugins/nouislider.min.js"></script>
+  <script src="{{ path-general }}/assets/js/plugins/perfect-scrollbar.min.js"></script>
+  
+  {% if page.slug == 'Default' or page.slug == 'CRM' or page.slug == 'Smart Home' %}
+  <script src="{{ path-general }}/assets/js/plugins/chartjs.min.js"></script>
+  {% endif %}
+
+  {% if page.slug == 'New Product' %}
+  <script src="{{ path-general }}/assets/js/plugins/quill.min.js"></script>
+  <script src="{{ path-general }}/assets/js/plugins/choices.min.js"></script>
+  <script src="{{ path-general }}/assets/js/plugins/dropzone.min.js"></script>
+  {% endif %}
+ 
+  <!-- main script file  -->
+  <script src="{{ path-general }}/assets/js/soft-ui-dashboard-pro-tailwind.js?v=1.1.0"></script>
+</html>

@@ -1,0 +1,18 @@
+---
+layout: vr
+slug: VR Info
+folder: Dashboards
+---
+
+<div class="relative scale-100 md:scale-70 min-h-85-screen">
+  <div class="w-full px-6 mx-auto">
+    <div class="flex flex-wrap pt-48 -mx-3">
+      {% include components/dashboards/vr/menu-info.html %}
+      
+      <div class="max-w-full px-3 md:w-11/12 md:flex-none lg:w-8/12">
+        {% include components/dashboards/vr/weather.html %}
+        {% include components/dashboards/vr/widgets.html %}
+      </div>
+    </div>
+  </div>
+</div>
