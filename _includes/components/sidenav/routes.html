@@ -1,0 +1,126 @@
+{% assign roots = site.data.sidebarRoutesPro %}
+
+
+{% for item in roots %}
+{% if item.title == "Pages" %}
+<li class="mt-4 w-full">
+  <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-xs opacity-60 dark:text-white">PAGES</h6>
+</li>
+{% endif %}
+
+{% if item.title == "Basic" %}
+<li class="mt-0.5 w-full">
+  <hr class="h-px my-4 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-white dark:to-transparent" />
+  <h6 class="pl-6 mb-2 ml-2 font-bold leading-tight uppercase text-xs opacity-60 dark:text-white">DOCS</h6>
+</li>
+{% endif %}
+
+<li class="mt-0.5 w-full">
+  {% if item.subfolderitems[0] %}
+    {% if page.folder == item.title %}
+    <a active_primary collapse_trigger="primary" href="javascript:;" class="after:ease-soft-in-out after:font-awesome-5-free ease-soft-in-out text-sm py-2.7 xl:shadow-soft-xl my-0 mx-4 flex items-center whitespace-nowrap rounded-lg bg-white px-4 font-semibold text-slate-700 transition-all after:ml-auto after:inline-block after:rotate-180 after:font-bold after:text-slate-800 after:antialiased after:transition-all after:duration-200 after:content-['\f107'] dark:text-white dark:opacity-80" aria-expanded="true">
+      {% if item.icon %}
+        <div class="stroke-none shadow-soft-sm bg-gradient-to-tl from-purple-700 to-pink-500 mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center p-2.5 text-center text-white">
+          {{ item.icon }}
+        </div>
+      {% endif %}
+      <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft text-slate-700">{{ item.title }}</span>
+    </a>
+    {% else %}
+    <a collapse_trigger="primary" href="javascript:;" class="ease-soft-in-out text-sm py-2.7 active after:ease-soft-in-out after:font-awesome-5-free my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors after:ml-auto after:inline-block after:font-bold after:text-slate-800/50 after:antialiased after:transition-all after:duration-200 after:content-['\f107'] dark:text-white dark:opacity-80 dark:after:text-white/50 dark:after:text-white" aria-expanded="false">
+      {% if item.icon %}
+        <div class="stroke-none shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-slate-800">
+          {{ item.icon }}
+        </div>
+      {% endif %}
+      <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft text-slate-700">{{ item.title }}</span>
+    </a>
+
+    {% endif %}
+  
+
+  <div class="{% if page.folder == item.title %}h-auto overflow-hidden transition-all duration-200 ease-soft-in-out{% else %}h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0{% endif %}" id="{{ item.url }}">
+    <ul class="flex flex-wrap pl-4 mb-0 ml-6 list-none transition-all duration-200 ease-soft-in-out">
+    {% for entry in item.subfolderitems %}
+      <li class="mt-0.5 w-full">
+
+        {% if entry.subfolderitems2[0] %}
+          {% if page.subfolder == entry.page %}
+            <a active_page active_secondary collapse_trigger="secondary" class="after:ease-soft-in-out after:font-awesome-5-free ease-soft-in-out py-1.6 ml-5.4 pl-4 text-sm before:-left-5 relative my-0 mr-4 flex items-center whitespace-nowrap rounded-lg bg-transparent pr-4 font-semibold text-slate-800 shadow-none transition-colors before:absolute before:top-1/2 before:h-2 before:w-2 before:-translate-y-1/2 before:rounded-3xl before:bg-slate-800 before:content-[''] after:ml-auto after:inline-block after:rotate-180 after:font-bold after:text-slate-800 after:antialiased after:transition-all after:duration-200 after:content-['\f107'] dark:text-white dark:opacity-100 dark:before:bg-white dark:before:opacity-80 dark:after:text-white cursor-pointer">
+              <span class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out"> {{ entry.page | slice: 0 }} </span>
+              <span class="transition-all duration-100 pointer-events-none ease-soft"> {{ entry.page }}  <b class="caret"></b></span>
+            </a>
+          {% else %}
+            <a collapse_trigger="secondary" class="after:ease-soft-in-out after:font-awesome-5-free ease-soft-in-out py-1.6 ml-5.4 pl-4 text-sm before:-left-4.5 before:h-1.25 before:w-1.25 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 font-medium text-slate-800/50 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:bg-slate-800/50 before:content-[''] after:ml-auto after:inline-block after:font-bold after:text-slate-800/50 after:antialiased after:transition-all after:duration-200 after:content-['\f107'] dark:text-white dark:opacity-60 dark:before:bg-white dark:before:opacity-80 dark:after:text-white/50 dark:after:text-white cursor-pointer">
+              <span class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out"> {{ entry.page | slice: 0 }} </span>
+              <span class="transition-all duration-100 pointer-events-none ease-soft"> {{ entry.page }}  <b class="caret"></b></span>
+            </a>
+          {% endif %}
+
+          <div class="{% if page.subfolder == entry.page %}h-auto overflow-hidden transition-all duration-200 ease-soft-in-out {% else %}h-auto overflow-hidden transition-all duration-200 ease-soft-in-out max-h-0{% endif %}" id="{{ entry.url }}">
+            <ul class="flex flex-col flex-wrap pl-0 mb-0 list-none transition-all duration-200 ease-soft-in-out">
+              {% for entrySub in entry.subfolderitems2 %}
+              <li class="mt-0.5 w-full">
+                {% if entrySub.url_extern == true %}
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 font-medium text-slate-800/50 shadow-none transition-colors dark:text-white dark:opacity-60" href="{{ entrySub.url }}" target="_blank">
+                    <span class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out text-xs"> {{ entrySub.page | slice: 0 }} </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> {{ entrySub.page }} </span>
+                  </a>
+                {% else %}
+                  {% if page.slug == entrySub.page %}
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 font-semibold text-slate-800 shadow-none transition-colors dark:text-white dark:opacity-100" href="{{ path-pages }}{{ entrySub.url }}">
+                    <span class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out text-xs"> {{ entrySub.page | slice: 0 }} </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> {{ entrySub.page }} </span>
+                  </a>
+                  {% else %}
+                  <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-3.4 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 font-medium text-slate-800/50 shadow-none transition-colors dark:text-white dark:opacity-60" href="{{ path-pages }}{{ entrySub.url }}">
+                    <span class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out text-xs"> {{ entrySub.page | slice: 0 }} </span>
+                    <span class="transition-all duration-100 pointer-events-none ease-soft"> {{ entrySub.page }} </span>
+                  </a>
+                  {% endif %}
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          {% else %}
+
+          {% if entry.url_extern == true %}
+            <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-sm before:-left-4.5 before:h-1.25 before:w-1.25 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 font-medium text-slate-800/50 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:bg-slate-800/50 before:content-[''] dark:text-white dark:opacity-60 dark:before:bg-white dark:before:opacity-80"  href="{{ entry.url }}" target="_blank">
+              <span class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out"> {{ entry.page | slice: 0 }} </span>
+              <span class="transition-all duration-100 pointer-events-none ease-soft"> {{ entry.page }} </span>
+            </a>
+          {% else %}
+            {% if page.slug == entry.page %}
+            <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-sm before:-left-5 relative my-0 mr-4 flex items-center whitespace-nowrap rounded-lg bg-transparent pr-4 font-semibold text-slate-800 shadow-none transition-colors before:absolute before:top-1/2 before:h-2 before:w-2 before:-translate-y-1/2 before:rounded-3xl before:bg-slate-800 before:content-[''] dark:text-white dark:opacity-100 dark:before:bg-white dark:before:opacity-80"  href="{{ path-pages }}{{ entry.url }}">
+              <span class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out"> {{ entry.page | slice: 0 }} </span>
+              <span class="transition-all duration-100 pointer-events-none ease-soft"> {{ entry.page }} </span>
+            </a>
+            {% else %}
+            <a class="ease-soft-in-out py-1.6 ml-5.4 pl-4 text-sm before:-left-4.5 before:h-1.25 before:w-1.25 relative my-0 mr-4 flex items-center whitespace-nowrap bg-transparent pr-4 font-medium text-slate-800/50 shadow-none transition-colors before:absolute before:top-1/2 before:-translate-y-1/2 before:rounded-3xl before:bg-slate-800/50 before:content-[''] dark:text-white dark:opacity-60 dark:before:bg-white dark:before:opacity-80"  href="{{ path-pages }}{{ entry.url }}">
+              <span class="w-0 text-center transition-all duration-200 opacity-0 pointer-events-none ease-soft-in-out"> {{ entry.page | slice: 0 }} </span>
+              <span class="transition-all duration-100 pointer-events-none ease-soft"> {{ entry.page }} </span>
+            </a>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      </li>
+
+    {% endfor %}
+  </ul>
+</div>
+
+  {% else %}
+
+  <a class="ease-soft-in-out text-sm py-2.7 my-0 mx-4 flex items-center whitespace-nowrap px-4 font-medium text-slate-500 shadow-none transition-colors dark:text-white dark:opacity-80" href="{{ item.url }}" target="_blank">
+    {% if item.icon %}
+      <div class="stroke-none shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center fill-current p-2.5 text-center text-black">
+        {{ item.icon }}
+      </div>
+    {% endif %}
+    <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">{{ item.title }}</span>
+  </a>
+  {% endif %}
+</li>
+{% endfor %}
