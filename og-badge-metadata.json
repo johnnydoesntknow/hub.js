@@ -1,0 +1,11 @@
+{
+  "name": "OPN OG Badge",
+  "description": "Exclusive OG Badge for early OPN Chain supporters. This soulbound token represents your status as an original member of the OPN community.",
+  "image": "ipfs://Qmf94tQegFj8pnREtGMhfH9nCnqPWAfXNmh4sxhmGtptSR",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    }
+  ]
+}

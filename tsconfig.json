@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",  // Changed from ES5/ES6/etc
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],  // Add ES2020
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+ "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "app/og-badge-claim/**/*"
+  ],
+  
+  "exclude": ["node_modules"]
+}
