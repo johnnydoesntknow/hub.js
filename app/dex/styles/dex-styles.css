@@ -1,0 +1,691 @@
+/* DEX Specific Styles - Dark Theme with Purple Accents */
+
+/* Background gradient for DEX pages - matching target */
+.dex-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #0a0015 0%, #150025 50%, #0a0015 100%);
+  z-index: -2;
+}
+
+.dex-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(147, 51, 234, 0.08) 0%, transparent 40%),
+              radial-gradient(circle at 20% 80%, rgba(147, 51, 234, 0.06) 0%, transparent 40%),
+              radial-gradient(circle at 80% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 40%);
+  z-index: -1;
+}
+
+/* Subtle glow effect */
+@keyframes subtleGlow {
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.2; }
+}
+
+.dex-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.05) 0%, transparent 60%);
+  animation: subtleGlow 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Main swap container styling - darker to match target */
+.swap-container {
+  background: rgba(15, 10, 25, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(147, 51, 234, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+              0 0 40px rgba(147, 51, 234, 0.05) inset;
+}
+
+/* Token input cards - darker background */
+.token-input-card {
+  background: rgba(20, 15, 30, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.1);
+  transition: all 0.3s ease;
+}
+
+.token-input-card:hover {
+  background: rgba(25, 20, 35, 0.6);
+  border-color: rgba(147, 51, 234, 0.2);
+  box-shadow: 0 2px 10px rgba(147, 51, 234, 0.08);
+}
+
+/* Header styling - minimal/transparent */
+.dex-header {
+  background: transparent;
+  position: relative;
+  z-index: 10;
+}
+
+/* Navigation tabs - no background colors */
+.nav-tab {
+  position: relative;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: none;
+}
+
+.nav-tab:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.nav-tab.active {
+  color: #ffffff;
+}
+
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #9333ea;
+}
+
+/* Token selector button */
+.token-selector-btn {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+.token-selector-btn:hover {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
+  border-color: rgba(147, 51, 234, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Swap button styling */
+.swap-button-active {
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  box-shadow: 0 4px 20px rgba(147, 51, 234, 0.4),
+              0 0 40px rgba(147, 51, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.swap-button-active:hover {
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(147, 51, 234, 0.5),
+              0 0 50px rgba(147, 51, 234, 0.3);
+}
+
+/* Wallet balance display */
+.wallet-balance {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wallet-address-badge {
+  background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Settings button */
+.settings-btn {
+  background: rgba(147, 51, 234, 0.1);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  padding: 0.625rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.settings-btn:hover {
+  background: rgba(147, 51, 234, 0.2);
+  border-color: rgba(147, 51, 234, 0.4);
+  transform: rotate(90deg);
+}
+
+/* Swap arrows */
+.swap-arrows-btn {
+  background: linear-gradient(135deg, rgba(40, 30, 60, 0.9) 0%, rgba(30, 20, 50, 1) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  padding: 0.625rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.swap-arrows-btn:hover {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.3) 0%, rgba(236, 72, 153, 0.3) 100%);
+  border-color: rgba(147, 51, 234, 0.5);
+  transform: rotate(180deg);
+}
+
+/* Input styling */
+input[type="number"] {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-size: 1.875rem;
+  font-weight: 500;
+  color: #ffffff;
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* Remove spinner buttons from Chrome, Safari, Edge */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  display: none;
+}
+
+input[type="number"]::placeholder {
+  color: rgba(156, 163, 175, 0.5);
+}
+
+/* Back to Hub link - matching target */
+.back-to-hub {
+  color: #9333ea;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.back-to-hub:hover {
+  color: #a855f7;
+  opacity: 1;
+  transform: translateX(-2px);
+}
+
+/* Additional DEX Component Styles */
+
+/* Liquidity Tab Styling */
+.liquidity-tabs {
+  display: flex;
+  background: rgba(20, 15, 30, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  border-radius: 1rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.liquidity-tab-button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.liquidity-tab-button.active {
+  background: rgba(147, 51, 234, 0.2);
+  color: #ffffff;
+}
+
+.liquidity-tab-button:hover:not(.active) {
+  background: rgba(147, 51, 234, 0.1);
+}
+
+/* Add/Remove Liquidity Cards */
+.liquidity-input-card {
+  background: rgba(20, 15, 30, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.1);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.plus-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.75rem;
+  background: rgba(20, 15, 30, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  color: #9333ea;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem auto;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.plus-button:hover {
+  background: rgba(147, 51, 234, 0.2);
+  transform: scale(1.05);
+}
+
+/* Warning Box */
+.warning-box {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.warning-box .warning-icon {
+  color: #f59e0b;
+  font-size: 1.25rem;
+}
+
+.warning-box .warning-text {
+  color: #fbbf24;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* Settings Modal */
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.settings-modal-content {
+  background: linear-gradient(135deg, rgba(20, 15, 35, 0.95) 0%, rgba(15, 10, 25, 0.98) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  border-radius: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+              0 0 60px rgba(147, 51, 234, 0.1);
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.settings-title {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+/* Slippage Settings */
+.settings-section {
+  margin-bottom: 2rem;
+}
+
+.settings-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.slippage-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.slippage-button {
+  flex: 1;
+  padding: 0.75rem;
+  background: rgba(30, 20, 45, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  border-radius: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.slippage-button.active {
+  background: rgba(147, 51, 234, 0.3);
+  border-color: rgba(147, 51, 234, 0.5);
+  color: #ffffff;
+}
+
+.slippage-button:hover:not(.active) {
+  background: rgba(147, 51, 234, 0.1);
+}
+
+.slippage-input-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slippage-input {
+  flex: 1;
+  background: rgba(30, 20, 45, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.slippage-input:focus {
+  outline: none;
+  border-color: rgba(147, 51, 234, 0.5);
+}
+
+/* Transaction Deadline */
+.deadline-display {
+  background: rgba(30, 20, 45, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.deadline-label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.deadline-value {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Info messages */
+.info-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(147, 51, 234, 0.05);
+  border-radius: 0.5rem;
+}
+
+.info-icon {
+  color: rgba(147, 51, 234, 0.7);
+  font-size: 1rem;
+}
+
+.info-text {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+/* Pools Tab Styles */
+.pools-container {
+  padding: 1.5rem;
+}
+
+.pools-header {
+  margin-bottom: 2rem;
+}
+
+.pools-title {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.pools-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+.pools-search {
+  background: rgba(20, 15, 30, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #ffffff;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.pools-search::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.pools-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.hide-small-pools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+}
+
+.new-position-button {
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.new-position-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+}
+
+/* Pools Table */
+.pools-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(147, 51, 234, 0.1);
+  margin-bottom: 1rem;
+}
+
+.pools-table-header span {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.no-pools-message {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 3rem;
+  font-size: 1rem;
+}
+
+/* Farm Tab Styles */
+.farm-container {
+  padding: 1.5rem;
+}
+
+.farm-header {
+  margin-bottom: 2rem;
+}
+
+.farm-title {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.farm-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+.farm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.farm-stat-card {
+  background: rgba(20, 15, 30, 0.5);
+  border: 1px solid rgba(147, 51, 234, 0.2);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.farm-stat-label {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.farm-stat-value {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.farm-stat-value.purple {
+  color: #9333ea;
+}
+
+.no-farms {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.no-farms-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(147, 51, 234, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.no-farms-icon svg {
+  width: 30px;
+  height: 30px;
+  color: #9333ea;
+}
+
+.no-farms-title {
+  color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.no-farms-subtitle {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.875rem;
+}
+
+/* Token Selector Modal Updates */
+.token-selector-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.token-selector-content {
+  background: linear-gradient(135deg, rgba(20, 15, 35, 0.95) 0%, rgba(15, 10, 25, 0.98) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  border-radius: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+/* Make all buttons consistent */
+.action-button {
+  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  color: #ffffff;
+  border: none;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.action-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+}
+
+.action-button:disabled {
+  background: rgba(55, 65, 81, 0.5);
+  color: rgba(156, 163, 175, 0.5);
+  cursor: not-allowed;
+}

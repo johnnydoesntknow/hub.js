@@ -22,6 +22,99 @@ import { DEFAULT_TOKENS } from './constants';
 import { formatBalance } from './utils/formatters';
 import { isValidAmount } from './utils/validators';
 import Link from 'next/link';
+import './styles/dex-styles.css';
+
+// Settings Modal Component (embedded to avoid import issues)
+const SwapSettings: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  slippage: string;
+  setSlippage: (value: string) => void;
+}> = ({ isOpen, onClose, slippage, setSlippage }) => {
+  if (!isOpen) return null;
+
+  const handleSlippageClick = (value: string) => {
+    setSlippage(value);
+  };
+
+  const handleCustomSlippage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (!isNaN(Number(value)) && Number(value) >= 0 && Number(value) <= 50) {
+      setSlippage(value);
+    }
+  };
+
+  return (
+    <div className="settings-modal" onClick={onClose}>
+      <div className="settings-modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="settings-header">
+          <h2 className="settings-title">Transaction Settings</h2>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-label">Slippage Tolerance</div>
+          
+          <div className="slippage-buttons">
+            <button
+              className={`slippage-button ${slippage === '0.1' ? 'active' : ''}`}
+              onClick={() => handleSlippageClick('0.1')}
+            >
+              0.1%
+            </button>
+            <button
+              className={`slippage-button ${slippage === '0.5' ? 'active' : ''}`}
+              onClick={() => handleSlippageClick('0.5')}
+            >
+              0.5%
+            </button>
+            <button
+              className={`slippage-button ${slippage === '1.0' ? 'active' : ''}`}
+              onClick={() => handleSlippageClick('1.0')}
+            >
+              1.0%
+            </button>
+          </div>
+
+          <div className="slippage-input-container">
+            <input
+              type="text"
+              className="slippage-input"
+              value={slippage}
+              onChange={handleCustomSlippage}
+              placeholder="0.5"
+            />
+            <span style={{ color: '#fff' }}>%</span>
+          </div>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-label">Transaction Deadline</div>
+          <div className="deadline-display">
+            <span className="deadline-label">Current setting</span>
+            <span className="deadline-value">20 minutes</span>
+          </div>
+        </div>
+
+        <div className="info-message">
+          <span className="info-icon">ⓘ</span>
+          <span className="info-text">
+            Slippage tolerance is the maximum price change you're willing to accept.
+          </span>
+        </div>
+
+        <div className="info-message">
+          <span className="info-icon">ⓘ</span>
+          <span className="info-text">
+            Transactions will revert if pending for longer than the deadline.
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function DexPage() {
   const { isConnected, address } = useHubWallet();
@@ -50,6 +143,7 @@ export default function DexPage() {
   // UI State
   const [activeTab, setActiveTab] = useState<TabType>('swap');
   const [showTokenSelectorFor, setShowTokenSelectorFor] = useState<'from' | 'to' | 'tokenA' | 'tokenB' | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Swap State
   const [fromToken, setFromToken] = useState<Token>(DEFAULT_TOKENS[0]);
@@ -101,24 +195,34 @@ export default function DexPage() {
     }
   }, [fromToken, toToken, calculateSwapOutput]);
 
+  // Handle from amount change with debounce
   useEffect(() => {
-    if (fromAmount) {
+    const timeoutId = setTimeout(() => {
       calculateOutput(fromAmount);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [fromAmount, fromToken, toToken, calculateOutput]);
+
+  // Handle swap execution
+  const handleSwap = async () => {
+    if (!isConnected || !fromAmount || !toAmount) {
+      toast.error('Please enter an amount');
+      return;
     }
-  }, [fromAmount, calculateOutput]);
 
-  // Calculate liquidity ratio
-  useEffect(() => {
-    const calculateRatio = async () => {
-      if (liquidityTab === 'add' && amountA && tokenA && tokenB) {
-        const amountBCalculated = await calculateLiquidityAmounts(tokenA, tokenB, amountA, 'A');
-        setAmountB(amountBCalculated);
-      }
-    };
-    calculateRatio();
-  }, [amountA, tokenA, tokenB, liquidityTab, calculateLiquidityAmounts]);
+    try {
+      await executeSwap(fromToken, toToken, fromAmount, toAmount, slippage); // Keep as string
+      toast.success('Swap successful!');
+      setFromAmount('');
+      setToAmount('');
+      await loadTokenBalances(); // NO PARAMETER
+    } catch (error: any) {
+      toast.error(error.message || 'Swap failed');
+    }
+  };
 
-  // Handlers
+  // Handle token swap
   const handleSwapTokens = () => {
     setFromToken(toToken);
     setToToken(fromToken);
@@ -126,189 +230,145 @@ export default function DexPage() {
     setToAmount(fromAmount);
   };
 
-  const handleSwap = async () => {
-    if (!isConnected || !isValidAmount(fromAmount) || parseFloat(toAmount) === 0) {
+  // Handle liquidity calculations - FIX: Add 4th parameter "A" and handle result as string
+  useEffect(() => {
+    if (liquidityTab === 'add' && amountA && tokenA && tokenB) {
+      const timeoutId = setTimeout(async () => {
+        try {
+          const calculatedB = await calculateLiquidityAmounts(
+            tokenA,
+            tokenB,
+            amountA,
+            "A"  // FIX: Add 4th parameter
+          );
+          setAmountB(calculatedB); // FIX: calculatedB is already a string
+        } catch (error) {
+          console.error('Error calculating liquidity:', error);
+        }
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [amountA, tokenA, tokenB, liquidityTab, calculateLiquidityAmounts]);
+
+  // Handle add liquidity
+  const handleAddLiquidity = async () => {
+    if (!isConnected || !amountA || !amountB) {
+      toast.error('Please enter amounts');
       return;
     }
 
     try {
-      await executeSwap(fromToken, toToken, fromAmount, toAmount, slippage);
-      setFromAmount('');
-      setToAmount('');
-      await loadTokenBalances();
-    } catch (error) {
-      // Error handling is done in the hook
-    }
-  };
-
-  const handleAddLiquidity = async () => {
-    if (!isConnected || !amountA || !amountB) return;
-    
-    try {
-      await addLiquidity(tokenA, tokenB, amountA, amountB, parseFloat(slippage));
+      await addLiquidity(tokenA, tokenB, amountA, amountB, parseFloat(slippage)); // Convert to number
+      toast.success('Liquidity added successfully!');
       setAmountA('');
       setAmountB('');
-      await loadTokenBalances();
-      await loadLiquidityPositions();
-    } catch (error) {
-      // Error handled in hook
+      await loadTokenBalances(); // NO PARAMETER
+      await loadLiquidityPositions(); // NO PARAMETER
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add liquidity');
     }
   };
 
-  const handleAddLiquidityFromPool = (token0: Token, token1: Token) => {
+  // Handle remove liquidity - FIX: Remove address parameters
+  const handleRemoveLiquidity = async () => {
+    if (!selectedPosition) {
+      toast.error('Please select a position');
+      return;
+    }
+
+    try {
+      await removeLiquidity(selectedPosition, removePercentage);
+      toast.success('Liquidity removed successfully!');
+      setSelectedPosition(null);
+      setRemovePercentage(25);
+      await loadTokenBalances(); // NO PARAMETER
+      await loadLiquidityPositions(); // NO PARAMETER
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to remove liquidity');
+    }
+  };
+
+  // Handle add liquidity navigation
+  const handleAddLiquidityClick = (token0: Token, token1: Token) => {
     setTokenA(token0);
     setTokenB(token1);
     setActiveTab('liquidity');
     setLiquidityTab('add');
   };
 
-  const handleRemoveLiquidity = async () => {
-    if (!selectedPosition) return;
-    
-    try {
-      await removeLiquidity(selectedPosition, removePercentage);
-      setSelectedPosition(null);
-      setRemovePercentage(25);
-      await loadTokenBalances();
-      await loadLiquidityPositions();
-    } catch (error) {
-      // Error handled in hook
-    }
-  };
-
-  const handleStakeClick = async (poolId: number) => {
-    const farm = farms.find((farmItem: FarmPool) => farmItem.poolId === poolId);
-    if (farm) {
-      setSelectedFarm(farm);
-      setStakeMode('stake');
-      setStakeAmount('');
-      setShowStakeModal(true);
-    }
-  };
-
-  const handleUnstakeClick = (poolId: number) => {
-    const farm = farms.find((farmItem: FarmPool) => farmItem.poolId === poolId);
-    if (farm) {
-      setSelectedFarm(farm);
-      setStakeMode('unstake');
-      setStakeAmount('');
-      setShowStakeModal(true);
-    }
-  };
-
-  const handleHarvest = async (poolId: number) => {
-    try {
-      await harvest(poolId);
-      await loadTokenBalances();
-    } catch (error) {
-      // Error handled in hook
-    }
-  };
-
-  const handleStakeConfirm = async () => {
-    if (!selectedFarm || !stakeAmount) return;
-
-    try {
-      if (stakeMode === 'stake') {
-        await stake(selectedFarm.poolId, stakeAmount);
-      } else {
-        await unstake(selectedFarm.poolId, stakeAmount);
-      }
-      setShowStakeModal(false);
-      setStakeAmount('');
-      await loadTokenBalances();
-    } catch (error) {
-      // Error handled in hook
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20">
-      <Toaster 
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: 'rgba(31, 7, 46, 0.9)',
-            color: '#fff',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            backdropFilter: 'blur(10px)',
-          },
-        }}
-      />
+    <div className="min-h-screen relative overflow-hidden">
+      <Toaster position="top-right" />
+      
+      {/* Purple gradient background */}
+      <div className="dex-background" />
+      <div className="dex-glow" />
 
-     {/* Header Bar */}
-<header className="bg-transparent">
-  <div className="max-w-7xl mx-auto px-8">
-    <div className="flex items-center justify-between h-20">
-      {/* Logo */}
-      <div className="flex items-center gap-2">
-        <img 
-          src="/images/badge/favicon.jpeg" 
-          alt="OPN Logo" 
-          className="w-10 h-10 rounded-full"
-        />
-        <h1 className="text-2xl font-bold">
-          <span className="text-white">OPN</span>
-          <span className="text-purple-500">swap</span>
-        </h1>
-      </div>
-
-      {/* Navigation Tabs - Centered (removed box, kept underline) */}
-      <nav className="absolute left-1/2 transform -translate-x-1/2 flex gap-8">
-        {(['swap', 'liquidity', 'pools', 'farm'] as TabType[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-1 py-2 font-medium text-base transition-all relative ${
-              activeTab === tab
-                ? 'text-white'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            {activeTab === tab && (
-              <div className="absolute -bottom-2 left-0 right-0 h-0.5 bg-purple-500"></div>
-            )}
-          </button>
-        ))}
-      </nav>
-
-      {/* Wallet Info */}
-      <div className="flex items-center gap-3">
-        {isConnected && (
-          <>
-            <div className="text-right">
-              <div className="text-gray-400 text-xs">Balance</div>
-              <div className="text-white font-medium">
-                {formatBalance(tokenBalances['0x0000000000000000000000000000000000000000'] || '0', 4)} OPN
-              </div>
-            </div>
-            <div className="flex items-center gap-2 bg-purple-500/10 px-3 py-2 rounded-xl border border-purple-500/20">
-              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">
-                  {address?.slice(2, 4).toUpperCase()}
-                </span>
-              </div>
-              <span className="text-white text-sm">
-                {address ? `${address.slice(0, 6)}...${address.slice(-4).toUpperCase()}` : ''}
+      {/* Header */}
+      <header className="dex-header">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo and brand - FIX: Add your actual logo */}
+            <div className="flex items-center gap-2">
+              <img 
+                src="/images/badge/favicon.jpeg" 
+                alt="OPN Logo" 
+                className="w-10 h-10 rounded-full"
+              />
+              <span className="text-xl font-medium text-white">
+                OPN<span className="text-purple-400">swap</span>
               </span>
             </div>
-          </>
-        )}
-      </div>
-    </div>
-  </div>
-</header>
 
-      {/* Main Content - Properly centered and sized */}
-      <div className="flex justify-center items-start px-4 pt-16">
+            {/* Navigation tabs */}
+            <nav className="flex items-center gap-2">
+              {(['swap', 'liquidity', 'pools', 'farm'] as TabType[]).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </nav>
+
+            {/* Wallet info */}
+            <div className="flex items-center gap-3">
+              {isConnected && address ? (
+                <>
+                  <div className="text-sm text-gray-400">
+                    <span>Balance</span>
+                    <span className="ml-2 text-white">
+                      {formatBalance(tokenBalances[fromToken.address] || '0')} OPN
+                    </span>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-3 py-1.5 rounded-lg">
+                    <span className="text-white text-sm font-medium">
+                      {address.slice(0, 6)}...{address.slice(-4)}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <button className="text-gray-400 text-sm">
+                  Connect Wallet
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex justify-center items-start px-4 pt-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="w-full max-w-[480px]"
         >
-          <div className="bg-black/40 backdrop-blur-xl rounded-3xl border border-purple-500/20 shadow-2xl shadow-purple-500/10 p-6">
+          <div className="swap-container rounded-3xl p-6">
             {/* Swap Interface */}
             {activeTab === 'swap' && (
               <div className="space-y-4">
@@ -317,7 +377,10 @@ export default function DexPage() {
                     <h2 className="text-2xl font-semibold text-white">Swap</h2>
                     <p className="text-gray-400 text-sm">Trade tokens instantly</p>
                   </div>
-                  <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors">
+                  <button 
+                    className="settings-btn"
+                    onClick={() => setShowSettings(true)}
+                  >
                     <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -326,7 +389,7 @@ export default function DexPage() {
                 </div>
 
                 {/* From Token */}
-                <div className="bg-black/30 rounded-2xl p-4 border border-purple-500/10">
+                <div className="token-input-card rounded-2xl p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-gray-400 text-sm">From</span>
                     <div className="text-gray-400 text-sm">
@@ -334,7 +397,7 @@ export default function DexPage() {
                       {fromToken.balance && (
                         <button
                           onClick={() => setFromAmount(fromToken.balance || '0')}
-                          className="ml-2 text-purple-400 hover:text-purple-300 font-medium"
+                          className="ml-2 text-purple-400 hover:text-purple-300 font-medium transition-colors"
                         >
                           MAX
                         </button>
@@ -347,11 +410,11 @@ export default function DexPage() {
                       value={fromAmount}
                       onChange={(e) => setFromAmount(e.target.value)}
                       placeholder="0.0"
-                      className="flex-1 bg-transparent text-white text-3xl outline-none placeholder-gray-600 w-0"
+                      className="flex-1 bg-transparent text-white text-3xl outline-none placeholder-gray-500 w-0"
                     />
                     <button 
                       onClick={() => setShowTokenSelectorFor('from')}
-                      className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 px-3 py-2 rounded-xl hover:bg-purple-500/20 transition-all flex-shrink-0"
+                      className="token-selector-btn flex items-center gap-2 px-3 py-2 rounded-xl"
                     >
                       {fromToken.logoURI && (
                         <img src={fromToken.logoURI} alt={fromToken.symbol} className="w-6 h-6 rounded-full" />
@@ -368,7 +431,7 @@ export default function DexPage() {
                 <div className="flex justify-center -my-2 relative z-10">
                   <button 
                     onClick={handleSwapTokens}
-                    className="p-2.5 bg-black/50 border border-purple-500/20 rounded-xl hover:bg-purple-500/20 transition-all hover:rotate-180 duration-300"
+                    className="swap-arrows-btn"
                   >
                     <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -377,7 +440,7 @@ export default function DexPage() {
                 </div>
 
                 {/* To Token */}
-                <div className="bg-black/30 rounded-2xl p-4 border border-purple-500/10">
+                <div className="token-input-card rounded-2xl p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-gray-400 text-sm">To</span>
                     <span className="text-gray-400 text-sm">
@@ -390,11 +453,11 @@ export default function DexPage() {
                       value={calculating ? '' : toAmount}
                       readOnly
                       placeholder={calculating ? 'Calculating...' : '0.0'}
-                      className="flex-1 bg-transparent text-white text-3xl outline-none placeholder-gray-600 w-0"
+                      className="flex-1 bg-transparent text-white text-3xl outline-none placeholder-gray-500 w-0"
                     />
                     <button 
                       onClick={() => setShowTokenSelectorFor('to')}
-                      className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 px-3 py-2 rounded-xl hover:bg-purple-500/20 transition-all flex-shrink-0"
+                      className="token-selector-btn flex items-center gap-2 px-3 py-2 rounded-xl"
                     >
                       {toToken.logoURI && (
                         <img src={toToken.logoURI} alt={toToken.symbol} className="w-6 h-6 rounded-full" />
@@ -407,22 +470,6 @@ export default function DexPage() {
                   </div>
                 </div>
 
-                {/* Swap Details */}
-                {fromAmount && toAmount && parseFloat(fromAmount) > 0 && parseFloat(toAmount) > 0 && (
-                  <div className="bg-black/30 rounded-xl p-3 border border-purple-500/10 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Rate</span>
-                      <span className="text-white">
-                        1 {fromToken.symbol} = {(parseFloat(toAmount) / parseFloat(fromAmount)).toFixed(6)} {toToken.symbol}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Slippage Tolerance</span>
-                      <span className="text-white">{slippage}%</span>
-                    </div>
-                  </div>
-                )}
-
                 {/* Swap Button */}
                 <button
                   onClick={handleSwap}
@@ -430,7 +477,7 @@ export default function DexPage() {
                   className={`w-full py-4 rounded-2xl font-semibold text-base transition-all ${
                     !isConnected || swapLoading || !fromAmount || parseFloat(fromAmount || '0') > parseFloat(fromToken.balance || '0')
                       ? 'bg-gray-800/50 text-gray-400 cursor-not-allowed'
-                      : 'bg-purple-500 hover:bg-purple-600 text-white shadow-lg shadow-purple-500/25'
+                      : 'swap-button-active text-white'
                   }`}
                 >
                   {!isConnected ? 'Connect Wallet' :
@@ -442,7 +489,7 @@ export default function DexPage() {
               </div>
             )}
 
-            {/* Other tabs content */}
+            {/* Liquidity Interface */}
             {activeTab === 'liquidity' && (
               <LiquidityInterface activeTab={liquidityTab} setActiveTab={setLiquidityTab}>
                 {liquidityTab === 'add' ? (
@@ -451,13 +498,13 @@ export default function DexPage() {
                     tokenB={tokenB}
                     amountA={amountA}
                     amountB={amountB}
-                    onAmountAChange={(value) => setAmountA(value)}
-                    onAmountBChange={(value) => setAmountB(value)}
+                    onAmountAChange={setAmountA}
+                    onAmountBChange={setAmountB}
                     onTokenASelect={() => setShowTokenSelectorFor('tokenA')}
                     onTokenBSelect={() => setShowTokenSelectorFor('tokenB')}
                     onAddLiquidity={handleAddLiquidity}
                     loading={liquidityLoading}
-                    disabled={!isConnected || !amountA || !amountB}
+                    disabled={!isConnected || liquidityLoading || !amountA || !amountB}
                     isConnected={isConnected}
                   />
                 ) : (
@@ -474,101 +521,187 @@ export default function DexPage() {
               </LiquidityInterface>
             )}
 
+            {/* Pools Interface - WITH ALL UI ELEMENTS */}
             {activeTab === 'pools' && (
-              <PoolsList 
-                pools={pools}
-                loading={poolsLoading}
-                onAddLiquidity={handleAddLiquidityFromPool}
-              />
+              <div className="pools-container">
+                <div className="pools-header">
+                  <h2 className="pools-title">Pools</h2>
+                  <p className="pools-subtitle">Add liquidity to pools and earn fees on swaps.</p>
+                </div>
+
+                <input
+                  type="text"
+                  className="pools-search"
+                  placeholder="Search by name or paste address"
+                />
+
+                <div className="pools-filters">
+                  <label className="hide-small-pools">
+                    <input type="checkbox" />
+                    <span>Hide small pools</span>
+                  </label>
+                  <button className="new-position-button">
+                    + New Position
+                  </button>
+                </div>
+
+                <div className="pools-table-header">
+                  <span>Pool</span>
+                  <span>TVL</span>
+                  <span>24h Volume</span>
+                  <span>7d Volume</span>
+                  <span>24h Fees</span>
+                </div>
+
+                <PoolsList
+                  pools={pools}
+                  loading={poolsLoading}
+                  onAddLiquidity={handleAddLiquidityClick}
+                />
+              </div>
             )}
 
+            {/* Farm Interface - WITH ALL UI ELEMENTS */}
             {activeTab === 'farm' && (
-              <FarmList
-                farms={farms}
-                userStakes={userStakes}
-                pendingRewards={pendingRewards}
-                loading={farmsLoading}
-                onStake={handleStakeClick}
-                onUnstake={handleUnstakeClick}
-                onHarvest={handleHarvest}
-              />
+              <div className="farm-container">
+                <div className="farm-header">
+                  <h2 className="farm-title">Yield Farming</h2>
+                  <p className="farm-subtitle">Stake LP tokens to earn WOPN rewards</p>
+                </div>
+
+                <div className="farm-stats">
+                  <div className="farm-stat-card">
+                    <div className="farm-stat-label">Total Value Locked</div>
+                    <div className="farm-stat-value">$0</div>
+                  </div>
+                  <div className="farm-stat-card">
+                    <div className="farm-stat-label">Your Total Staked</div>
+                    <div className="farm-stat-value">$0.00</div>
+                  </div>
+                  <div className="farm-stat-card">
+                    <div className="farm-stat-label">Total Rewards</div>
+                    <div className="farm-stat-value purple">
+                      {formatBalance(
+                        Object.values(pendingRewards).reduce((sum, val) => sum + parseFloat(val || '0'), 0).toString()
+                      )} WOPN
+                    </div>
+                  </div>
+                </div>
+
+                {farmsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
+                  </div>
+                ) : farms.length === 0 ? (
+                  <div className="no-farms">
+                    <div className="no-farms-icon">
+                      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <div className="no-farms-title">No farms available</div>
+                    <div className="no-farms-subtitle">Check back later for farming opportunities</div>
+                  </div>
+                ) : (
+                  <FarmList
+                    farms={farms}
+                    userStakes={userStakes}
+                    pendingRewards={pendingRewards}
+                    loading={farmsLoading}
+                    onStake={(poolId) => {
+                      const farm = farms.find(f => f.poolId === poolId);
+                      if (farm) {
+                        setSelectedFarm(farm);
+                        setStakeMode('stake');
+                        setShowStakeModal(true);
+                      }
+                    }}
+                    onUnstake={(poolId) => {
+                      const farm = farms.find(f => f.poolId === poolId);
+                      if (farm) {
+                        setSelectedFarm(farm);
+                        setStakeMode('unstake');
+                        setShowStakeModal(true);
+                      }
+                    }}
+                    onHarvest={harvest}
+                  />
+                )}
+              </div>
             )}
+          </div>
+
+          {/* Back to Hub Link */}
+          <div className="text-center mt-6">
+            <Link href="/hub" className="back-to-hub">
+              ← Back to Hub
+            </Link>
           </div>
         </motion.div>
       </div>
 
-      {/* Token Selectors */}
-      <TokenSelector
-        isOpen={showTokenSelectorFor === 'from'}
-        onClose={() => setShowTokenSelectorFor(null)}
-        onSelect={(token) => {
-          setFromToken(token);
-          setShowTokenSelectorFor(null);
-        }}
-        currentToken={fromToken}
-        otherToken={toToken}
-        tokenBalances={tokenBalances}
-      />
+      {/* Token Selector Modal */}
+      {showTokenSelectorFor && (
+        <TokenSelector
+          isOpen={true}
+          onClose={() => setShowTokenSelectorFor(null)}
+          onSelect={(token) => {
+            if (showTokenSelectorFor === 'from') setFromToken(token);
+            else if (showTokenSelectorFor === 'to') setToToken(token);
+            else if (showTokenSelectorFor === 'tokenA') setTokenA(token);
+            else if (showTokenSelectorFor === 'tokenB') setTokenB(token);
+            setShowTokenSelectorFor(null);
+          }}
+          currentToken={showTokenSelectorFor === 'from' ? fromToken : 
+                        showTokenSelectorFor === 'to' ? toToken :
+                        showTokenSelectorFor === 'tokenA' ? tokenA : tokenB}
+          otherToken={showTokenSelectorFor === 'from' ? toToken : 
+                      showTokenSelectorFor === 'to' ? fromToken :
+                      showTokenSelectorFor === 'tokenA' ? tokenB : tokenA}
+          tokenBalances={tokenBalances}
+        />
+      )}
 
-      <TokenSelector
-        isOpen={showTokenSelectorFor === 'to'}
-        onClose={() => setShowTokenSelectorFor(null)}
-        onSelect={(token) => {
-          setToToken(token);
-          setShowTokenSelectorFor(null);
-        }}
-        currentToken={toToken}
-        otherToken={fromToken}
-        tokenBalances={tokenBalances}
-      />
-
-      <TokenSelector
-        isOpen={showTokenSelectorFor === 'tokenA'}
-        onClose={() => setShowTokenSelectorFor(null)}
-        onSelect={(token) => {
-          setTokenA(token);
-          setShowTokenSelectorFor(null);
-        }}
-        currentToken={tokenA}
-        otherToken={tokenB}
-        tokenBalances={tokenBalances}
-      />
-
-      <TokenSelector
-        isOpen={showTokenSelectorFor === 'tokenB'}
-        onClose={() => setShowTokenSelectorFor(null)}
-        onSelect={(token) => {
-          setTokenB(token);
-          setShowTokenSelectorFor(null);
-        }}
-        currentToken={tokenB}
-        otherToken={tokenA}
-        tokenBalances={tokenBalances}
+      {/* Settings Modal */}
+      <SwapSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        slippage={slippage}
+        setSlippage={setSlippage}
       />
 
       {/* Stake Modal */}
-      <StakeModal
-        isOpen={showStakeModal}
-        onClose={() => setShowStakeModal(false)}
-        farm={selectedFarm}
-        mode={stakeMode}
-        amount={stakeAmount}
-        onAmountChange={setStakeAmount}
-        onConfirm={handleStakeConfirm}
-        lpBalance={selectedFarm ? getLPBalance(selectedFarm.lpToken) : '0'}
-        stakedBalance={selectedFarm ? userStakes[selectedFarm.poolId] || '0' : '0'}
-        loading={farmsLoading}
-      />
-
-      {/* Back to Hub Link */}
-<div className="text-center py-8">
-  <Link 
-    href="/" 
-    className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
-  >
-    ← Back to Hub
-  </Link>
-</div>
+      {showStakeModal && selectedFarm && (
+        <StakeModal
+          isOpen={showStakeModal}
+          onClose={() => {
+            setShowStakeModal(false);
+            setStakeAmount('');
+          }}
+          farm={selectedFarm}
+          mode={stakeMode}
+          amount={stakeAmount}
+          onAmountChange={setStakeAmount}
+          onConfirm={async () => {
+            try {
+              if (stakeMode === 'stake') {
+                await stake(selectedFarm.poolId, stakeAmount);
+                toast.success('Staked successfully!');
+              } else {
+                await unstake(selectedFarm.poolId, stakeAmount);
+                toast.success('Unstaked successfully!');
+              }
+              setShowStakeModal(false);
+              setStakeAmount('');
+            } catch (error: any) {
+              toast.error(error.message || 'Transaction failed');
+            }
+          }}
+          lpBalance={getLPBalance(selectedFarm.lpToken)}
+          stakedBalance={userStakes[selectedFarm.poolId] || '0'}
+          loading={false}
+        />
+      )}
     </div>
   );
 }

@@ -6,11 +6,63 @@ import { dapps, getCategoryName, getDAppsByCategory, DApp } from '@/lib/dapps';
 
 interface SidebarProps {
   onDAppClick: (DApp: DApp) => void;
+  currentDapp?: string; // Add this to track current active page
 }
 
-export default function Sidebar({ onDAppClick }: SidebarProps) {
+// Get two-letter abbreviation for each dapp
+const getAbbreviation = (dappName: string): string => {
+  const abbreviations: { [key: string]: string } = {
+    'OPN Hub': 'OH',
+    'Rep Dashboard': 'RD',
+    'Tokenization Platform': 'TP',
+    'IOPN DEX': 'ID',
+    'Airdropper': 'AD',
+    'Digital Durhams': 'DD',
+    'Learn IOPn': 'LI',
+    'OG Badge': 'OG'
+  };
+  return abbreviations[dappName] || dappName.slice(0, 2).toUpperCase();
+};
+
+// Simple Dot Component (no animation)
+const StatusDot: React.FC<{
+  dapp: DApp;
+  isActive: boolean;
+  isHovered: boolean;
+  size?: 'small' | 'normal';
+}> = ({ dapp, isActive, isHovered, size = 'normal' }) => {
+  // Determine dot color based on status
+  const getDotColor = () => {
+    if (isActive) {
+      // Active page - bright purple
+      return 'bg-purple-500';
+    } else if (dapp.status === 'coming-soon') {
+      // Coming soon - gray
+      return 'bg-gray-600';
+    } else {
+      // Inactive but available - dim purple
+      return 'bg-purple-500/30';
+    }
+  };
+
+  const sizeClasses = size === 'small' ? 'w-1.5 h-1.5' : 'w-2 h-2';
+
+  return (
+    <div 
+      className={`
+        rounded-full transition-all duration-200
+        ${getDotColor()}
+        ${sizeClasses}
+        ${isHovered ? 'ring-2 ring-purple-500/30 ring-offset-1 ring-offset-slate-900' : ''}
+      `}
+    />
+  );
+};
+
+export default function Sidebar({ onDAppClick, currentDapp = 'OPN Hub' }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [hoveredDapp, setHoveredDapp] = useState<string | null>(null);
 
   const categories: Array<DApp['category']> = ['dashboards', 'real-world-assets', 'opn-chain'];
 
@@ -97,31 +149,73 @@ export default function Sidebar({ onDAppClick }: SidebarProps) {
 
                   {/* Category Items */}
                   <div className="space-y-1">
-                    {categoryDapps.map((dapp) => (
-                      <button
-                        key={dapp.id}
-                        onClick={() => {
-                          onDAppClick(dapp);
-                          setIsMobileOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 dark:hover:border dark:hover:border-indigo-500/30 transition-all text-left ${
-                          !isOpen && 'justify-center'
-                        }`}
-                        title={!isOpen ? dapp.name : ''}
-                      >
-                        <span className="text-xl">{dapp.icon}</span>
-                        {isOpen && (
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-iopn-navy dark:text-white truncate">
-                              {dapp.name}
+                    {categoryDapps.map((dapp) => {
+                      const isActive = currentDapp === dapp.name;
+                      
+                      return (
+                        <button
+                          key={dapp.id}
+                          onClick={() => {
+                            onDAppClick(dapp);
+                            setIsMobileOpen(false);
+                          }}
+                          onMouseEnter={() => setHoveredDapp(dapp.id)}
+                          onMouseLeave={() => setHoveredDapp(null)}
+                          className={`
+                            w-full flex items-center gap-3 px-3 py-2 rounded-lg 
+                            hover:bg-gray-50 dark:hover:bg-slate-800/50 
+                            transition-all text-left
+                            ${!isOpen && 'justify-center'}
+                            ${isActive ? 'bg-purple-50 dark:bg-purple-900/20' : ''}
+                          `}
+                          title={!isOpen ? dapp.name : ''}
+                        >
+                          {isOpen ? (
+                            // Expanded state - dot with name
+                            <>
+                              <div className="flex items-center justify-center w-5">
+                                <StatusDot 
+                                  dapp={dapp} 
+                                  isActive={isActive}
+                                  isHovered={hoveredDapp === dapp.id} 
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className={`text-sm font-medium truncate ${
+                                  isActive 
+                                    ? 'text-purple-600 dark:text-purple-400' 
+                                    : 'text-iopn-navy dark:text-white'
+                                }`}>
+                                  {dapp.name}
+                                </div>
+                                {dapp.status === 'coming-soon' && (
+                                  <div className="text-xs text-gray-400 dark:text-gray-500">
+                                    Coming Soon
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            // Collapsed state - dot with 2-letter abbreviation
+                            <div className="flex flex-col items-center gap-1">
+                              <StatusDot 
+                                dapp={dapp} 
+                                isActive={isActive}
+                                isHovered={hoveredDapp === dapp.id}
+                                size="small"
+                              />
+                              <span className={`text-xs font-medium ${
+                                isActive 
+                                  ? 'text-purple-600 dark:text-purple-400' 
+                                  : 'text-gray-500 dark:text-gray-400'
+                              }`}>
+                                {getAbbreviation(dapp.name)}
+                              </span>
                             </div>
-                            {dapp.status === 'coming-soon' && (
-                              <div className="text-xs text-gray-400 dark:text-gray-500">Coming Soon</div>
-                            )}
-                          </div>
-                        )}
-                      </button>
-                    ))}
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );
